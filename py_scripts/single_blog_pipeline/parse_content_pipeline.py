@@ -3,7 +3,7 @@ from skillNer.skill_extractor_class import SkillExtractor
 
 from py_scripts.data_structures import BlogMetadata
 from py_scripts.single_blog_pipeline.utils import (parse_content_article,
-                                                   parse_skills)
+                                                   parse_skills_in_paragraph)
 
 
 def single_blog_pipeline(
@@ -27,7 +27,7 @@ def single_blog_pipeline(
 
     Note
     ----
-        Pipeline inplace change ``blog``
+        Pipeline inplace-changes ``blog``
     """
     # parse content
     content = parse_content_article(
@@ -35,11 +35,21 @@ def single_blog_pipeline(
         text_extractor
     )
 
-    # parse skills
-    parsed_skills = parse_skills(
-        content,
-        skill_extractor
-    )
+    # creating parsed_skills and list_occurrences in blog if they don't exist
+    blog.setdefault('parsed_skills', [])
+    blog.setdefault('list_occurrences', [])
 
-    # enrich blog
-    blog['parsed_skills'] = parsed_skills
+    # loop over paragraphs in parsed content
+    for idx, paragraph in enumerate(content.splitlines()):
+        # parse skills
+        parsed_skills, occurrences = parse_skills_in_paragraph(
+            paragraph,
+            skill_extractor,
+            paragraph_id=f"{blog['id']}-{idx}"
+        )
+
+        # enrich blog with skills
+        blog['parsed_skills'] += parsed_skills
+
+        # enrich blog with occurrences
+        blog['list_occurrences'] += occurrences
