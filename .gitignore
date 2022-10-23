@@ -1,1 +1,7 @@
 /.DS_Store
+
+__pycache__
+
+# skillner bundles
+skill_db_relax_20.json
+token_dist.json
