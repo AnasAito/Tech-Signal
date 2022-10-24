@@ -1,5 +1,4 @@
-
-
+#pylint: disable = unnecessary-lambda-assignment
 
 import requests
 
@@ -28,6 +27,7 @@ class Client:
             headers=self.headers,
             json={"query": query, "variables": variables},
         )
+        
         assert request.ok, f"Failed with code {request.status_code}"
         return request.json()
     
@@ -54,13 +54,64 @@ class Client:
         """,
         {"idx": idx, "title": title},
     )
-
+    
+    get_skills = lambda self : self.run_query(
+        """
+            query GetSkills {
+                Skill{
+                    id
+                    name
+                    category
+                    subCategory
+                    description
+                    isLanguage
+                    isSoftware
+                }
+            }
+        """,
+        {},
+    )
+    create_skill = lambda self, idx, meta: self.run_query(
+        """
+            mutation CreateSkill($idx: String!, $name: String!, $category: String, $subCategory: String, $isLanguage:Boolean ,$isSoftware:Boolean, $description:String ) {
+                insert_Skill_one(object: {id: $idx, name: $name,category: $category,subCategory: $subCategory,isLanguage: $isLanguage,isSoftware: $isSoftware,description: $description}) {
+                    id
+                    
+                }
+            }
+        """,
+        {"idx": idx,
+        "name": meta['name'],
+        "category":meta['category'],
+        'subCategory':meta['subCategory'],
+        'isLanguage' : meta['isLanguage'],
+        'isSoftware' : meta['isSoftware'],
+        'description' : meta['description']},
+    )
+ 
 
 client = Client(url=os.getenv('HASURA_URL'), headers=HASURA_HEADERS)
 
-#client.get_articles()
 
 
+get_occurences = """
+query MyQuery {
+  Skill(where: {name: {_ilike: "sql"}}) {
+    name
+    ParsedSkills {
+      Occurence {
+        text
+        Article {
+          Company {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+"""
 
 
 
